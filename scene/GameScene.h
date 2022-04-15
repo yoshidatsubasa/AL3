@@ -49,11 +49,11 @@ class GameScene {
 	DebugText* debugText_ = nullptr;
 	uint32_t textureHandle_ = 0;
 	uint32_t soundDataHandle_ = 0;
-	Model* model_ = nullptr;
 	WorldTransform worldTransform_;
 	ViewProjection viewProjection_;
 	uint32_t value_ = 0;
 	uint32_t voiceHandle_ = 0;
+	Model* model_ = nullptr;
 	/// <summary>
 	/// ゲームシーン用
 	
