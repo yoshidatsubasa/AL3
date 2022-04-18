@@ -62,14 +62,27 @@ void GameScene::Initialize() {
 	//ビュープロジェクションの初期化
 	viewProjection_.Initialize();
 	
+	//カメラ注視点座標を設定
+	viewProjection_.target = {10, 0, 0};
+
+	//ビュープロジェクションの初期化
+	viewProjection_.Initialize();
+
+	//カメラ上方向ベクトルを設定(右上４５度指定)
+	viewProjection_.up = {cosf(XM_PI / 4.0f), sinf(XM_PI / 4.0f), 0.0f};
+
+	//ビュープロジェクションの初期化
+	viewProjection_.Initialize();
+
+
 }
 
 void GameScene::Update() { XMFLOAT2 position = sprite_->GetPosition(); 
     position.x += 2.0f;
 	position.y += 1.0f;
-	debugText_->Print("translation:(10.000000,10.000000,10.000000)", 50, 50, 1.0f);
+	/*debugText_->Print("translation:(10.000000,10.000000,10.000000)", 50, 50, 1.0f);
 	debugText_->Print("rotation:(0.785398,0.785398,0.000000)", 50, 70, 1.0f);
-	debugText_->Print("scale:(5.000000,5.000000,5.000000)", 50, 90, 1.0f);
+	debugText_->Print("scale:(5.000000,5.000000,5.000000)", 50, 90, 1.0f);*/
 	debugText_->SetPos(50,70);
 	//debugText_->Printf("year:%d", 2001);
 	sprite_->SetPosition(position);
@@ -92,7 +105,7 @@ void GameScene::Update() { XMFLOAT2 position = sprite_->GetPosition();
 		const float kEySpeed = 0.2f;
 		//押した方向で移動ベクトルを変更
 		if (input_->PushKey(DIK_W)) {
-			move = {0, 0, -kEySpeed};
+			move = {0, 0, kEySpeed};
 		} else if (input_->PushKey(DIK_S)) {
 			move = {0, 0, -kEySpeed};
 		}
@@ -110,7 +123,57 @@ void GameScene::Update() { XMFLOAT2 position = sprite_->GetPosition();
 
 	}
 
+	//注視点移動処理
+	{
+		//注視点の移動ベクトル
+		XMFLOAT3 move = {0, 0, 0};
 
+		//注視点の移動速さ
+		const float kTargetSpeed = 0.2f;
+		//押した方向で移動ベクトルを変更
+		if (input_->PushKey(DIK_LEFT)) {
+			move = {-kTargetSpeed,0,0};
+		} else if (input_->PushKey(DIK_RIGHT)) {
+			move = {kTargetSpeed,0,0};
+		}
+		//注視点移動(ベクトルの加算)
+		viewProjection_.target.x += move.x;
+		viewProjection_.target.y += move.y;
+		viewProjection_.target.z += move.z;
+
+		//行列の再計算
+		viewProjection_.UpdateMatrix();
+		//デバッグ用表示
+		debugText_->SetPos(50, 70);
+		debugText_->Printf(
+		  "target:(%f,%f,%f)", viewProjection_.target.x, viewProjection_.target.y, viewProjection_.target.z );
+
+		
+	}
+
+	//上方向回転処理
+	{
+
+		//上方向の回転速さ(ラジアン/frame)
+		const float kUpRotSpeed = 0.05f;
+		//押した方向で移動ベクトルを変更
+		if (input_->PushKey(DIK_SPACE)) {
+			viewAngle  += kUpRotSpeed;
+			// 2πを超えたら0に戻す
+			viewAngle = fmodf(viewAngle, XM_2PI);
+		} 
+
+		//上方向のベクトルを計算(半径1の円周上の座標)
+		viewProjection_.up = {cosf(viewAngle), sinf(viewAngle), 0.0f};
+
+		//行列の再計算
+		viewProjection_.UpdateMatrix();
+		//デバッグ用表示
+		debugText_->SetPos(50, 90);
+		debugText_->Printf(
+		  "up:(%f,%f,%f)", viewProjection_.up.x, viewProjection_.up.y, viewProjection_.up.z);
+		
+	}
 }
 
 void GameScene::Draw() {
